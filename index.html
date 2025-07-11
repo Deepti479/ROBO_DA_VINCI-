@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robo Da Vinci</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to Robo Da Vinci</h1>
+        <p>Transform your images into stunning Renaissance-style artworks with the power of technology.<br>
+        Upload your image or take a picture to begin your artistic journey with Robo Da Vinci.</p>
+        
+        <div class="buttons">
+            <button class="btn btn-upload" id="uploadBtn">Upload Image</button>
+            <button class="btn btn-camera" id="cameraBtn">Take Picture</button>
+        </div>
+        
+        <input type="file" id="fileInput" class="file-input" accept="image/*">
+        
+        <div class="preview-container" id="previewContainer">
+            <h2>Your Image</h2>
+            <img id="previewImage" class="preview-image" src="" alt="Preview">
+            <button class="btn btn-upload" id="processBtn" style="margin-top: 20px;">Transform to Art</button>
+        </div>
+        
+        <div class="processing-message" id="processingMessage">
+            Processing your image... Please wait while we create your masterpiece.
+        </div>
+
+        <!-- <div class="cyber-loader">
+            <div class="loader-bar" style="--color: #00F5FF"></div>
+        </div> -->
+        
+        <div class="result-container" id="resultContainer">
+            <h2>Your Renaissance Masterpiece</h2>
+            <img id="resultImage" class="preview-image" src="" alt="Result">
+            <button class="btn btn-upload" id="downloadBtn" style="margin-top: 20px;">Download Artwork</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const uploadBtn = document.getElementById('uploadBtn');
+            const cameraBtn = document.getElementById('cameraBtn');
+            const fileInput = document.getElementById('fileInput');
+            const previewContainer = document.getElementById('previewContainer');
+            const previewImage = document.getElementById('previewImage');
+            const processBtn = document.getElementById('processBtn');
+            const processingMessage = document.getElementById('processingMessage');
+            const resultContainer = document.getElementById('resultContainer');
+            const resultImage = document.getElementById('resultImage');
+            const downloadBtn = document.getElementById('downloadBtn');
+            
+            // Upload image button functionality
+            uploadBtn.addEventListener('click', function() {
+                fileInput.click();
+            });
+            
+            fileInput.addEventListener('change', function(e) {
+                if (e.target.files && e.target.files[0]) {
+                    const reader = new FileReader();
+                    
+                    reader.onload = function(event) {
+                        previewImage.src = event.target.result;
+                        previewContainer.style.display = 'block';
+                        resultContainer.style.display = 'none';
+                    };
+                    
+                    reader.readAsDataURL(e.target.files[0]);
+                }
+            });
+            
+            // Camera button functionality
+            cameraBtn.addEventListener('click', function() {
+                if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                    navigator.mediaDevices.getUserMedia({ video: true })
+                        .then(function(stream) {
+                            // Create a video element to capture from camera
+                            const video = document.createElement('video');
+                            video.srcObject = stream;
+                            video.play();
+                            
+                            // Create a canvas to capture the image
+                            const canvas = document.createElement('canvas');
+                            const context = canvas.getContext('2d');
+                            
+                            // When video is playing, capture image
+                            video.addEventListener('playing', function() {
+                                canvas.width = video.videoWidth;
+                                canvas.height = video.videoHeight;
+                                
+                                // Create a modal for camera preview
+                                const cameraModal = document.createElement('div');
+                                cameraModal.style.position = 'fixed';
+                                cameraModal.style.top = '0';
+                                cameraModal.style.left = '0';
+                                cameraModal.style.width = '100%';
+                                cameraModal.style.height = '100%';
+                                cameraModal.style.backgroundColor = 'rgba(0,0,0,0.8)';
+                                cameraModal.style.display = 'flex';
+                                cameraModal.style.flexDirection = 'column';
+                                cameraModal.style.alignItems = 'center';
+                                cameraModal.style.justifyContent = 'center';
+                                cameraModal.style.zIndex = '1000';
+                                
+                                const cameraPreview = document.createElement('video');
+                                cameraPreview.srcObject = stream;
+                                cameraPreview.autoplay = true;
+                                cameraPreview.style.maxWidth = '90%';
+                                cameraPreview.style.maxHeight = '80%';
+                                
+                                const captureBtn = document.createElement('button');
+                                captureBtn.textContent = 'Capture Image';
+                                captureBtn.className = 'btn btn-upload';
+                                captureBtn.style.marginTop = '20px';
+                                
+                                const cancelBtn = document.createElement('button');
+                                cancelBtn.textContent = 'Cancel';
+                                cancelBtn.className = 'btn btn-camera';
+                                cancelBtn.style.marginTop = '10px';
+                                
+                                cameraModal.appendChild(cameraPreview);
+                                cameraModal.appendChild(captureBtn);
+                                cameraModal.appendChild(cancelBtn);
+                                document.body.appendChild(cameraModal);
+                                
+                                captureBtn.addEventListener('click', function() {
+                                    context.drawImage(cameraPreview, 0, 0, canvas.width, canvas.height);
+                                    previewImage.src = canvas.toDataURL('image/png');
+                                    previewContainer.style.display = 'block';
+                                    resultContainer.style.display = 'none';
+                                    
+                                    // Stop all video streams and remove modal
+                                    stream.getTracks().forEach(track => track.stop());
+                                    document.body.removeChild(cameraModal);
+                                });
+                                
+                                cancelBtn.addEventListener('click', function() {
+                                    stream.getTracks().forEach(track => track.stop());
+                                    document.body.removeChild(cameraModal);
+                                });
+                            });
+                        })
+                        .catch(function(error) {
+                            alert('Could not access the camera. Please make sure you have granted camera permissions.');
+                            console.error('Camera error:', error);
+                        });
+                } else {
+                    alert('Camera access is not supported by your browser or device.');
+                }
+            });
+            
+            // Process image button functionality
+            processBtn.addEventListener('click', function() {
+                processingMessage.style.display = 'block';
+                previewContainer.style.display = 'none';
+                
+                // Simulate processing delay (in a real app, this would be an API call)
+                setTimeout(function() {
+                    processingMessage.style.display = 'none';
+                    resultImage.src = applyRenaissanceFilter(previewImage.src);
+                    resultContainer.style.display = 'block';
+                }, 3000);
+            });
+            
+            // Download button functionality
+            downloadBtn.addEventListener('click', function() {
+                const link = document.createElement('a');
+                link.download = 'renaissance-artwork.png';
+                link.href = resultImage.src;
+                link.click();
+            });
+            
+            // Simple filter simulation (in a real app, this would be done by a proper image processing API)
+            function applyRenaissanceFilter(imageSrc) {
+                // This is just a simulation - in reality you would use a proper image processing library or API
+                const canvas = document.createElement('canvas');
+                const img = new Image();
+                img.src = imageSrc;
+                
+                // Wait for image to load
+                return new Promise((resolve) => {
+                    img.onload = function() {
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        const ctx = canvas.getContext('2d');
+                        
+                        // Draw original image
+                        ctx.drawImage(img, 0, 0);
+                        
+                        // Apply some basic filters to simulate effect
+                        // Sepia tone
+                        ctx.fillStyle = 'rgba(150, 100, 50, 0.2)';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        
+                        // Add some noise
+                        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                        const data = imageData.data;
+                        
+                        for (let i = 0; i < data.length; i += 4) {
+                            // Add some random noise
+                            const noise = Math.random() * 20 - 10;
+                            data[i] += noise;     // R
+                            data[i + 1] += noise; // G
+                            data[i + 2] += noise; // B
+                        }
+                        
+                        ctx.putImageData(imageData, 0, 0);
+                        
+                        // Add vignette effect
+                        const gradient = ctx.createRadialGradient(
+                            canvas.width / 2, canvas.height / 2, canvas.width * 0.4,
+                            canvas.width / 2, canvas.height / 2, canvas.width * 0.6
+                        );
+                        gradient.addColorStop(0, 'rgba(0,0,0,0)');
+                        gradient.addColorStop(1, 'rgba(0,0,0,0.5)');
+                        
+                        ctx.fillStyle = gradient;
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        
+                        resolve(canvas.toDataURL('image/png'));
+                    };
+                });
+            }
+        });
+    </script>
+</body>
+</html>
